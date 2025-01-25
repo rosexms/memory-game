@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>记忆训练游戏</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .controls {
+            margin: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 60px;
+            margin: 0 10px;
+        }
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .number-box {
+            width: 80px;
+            height: 80px;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .hidden {
+            color: white;
+        }
+        .game-over {
+            font-size: 24px;
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button id="startButton">开始游戏</button>
+        <input type="number" id="numberInput" min="1" max="9" value="9">
+        <span>输入数量(1-9)</span>
+    </div>
+    <div id="gameContainer" class="game-container"></div>
+    <div id="gameOver" class="game-over"></div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const numberInput = document.getElementById('numberInput');
+        const gameContainer = document.getElementById('gameContainer');
+        const gameOverText = document.getElementById('gameOver');
+
+        let numbers = [];
+        let currentNumber = 1;
+        let gameActive = false;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createNumberBoxes() {
+            gameContainer.innerHTML = '';
+            const count = parseInt(numberInput.value);
+            numbers = Array.from({length: count}, (_, i) => i + 1);
+            numbers = shuffle(numbers);
+
+            numbers.forEach(num => {
+                const box = document.createElement('div');
+                box.className = 'number-box';
+                box.textContent = num;
+                box.dataset.number = num;
+                box.addEventListener('click', handleClick);
+                gameContainer.appendChild(box);
+            });
+
+            // 1秒后隐藏数字
+            setTimeout(() => {
+                document.querySelectorAll('.number-box').forEach(box => {
+                    box.classList.add('hidden');
+                });
+            }, 1000);
+        }
+
+        function handleClick(e) {
+            if (!gameActive) return;
+
+            const clickedNumber = parseInt(e.target.dataset.number);
+            if (clickedNumber === currentNumber) {
+                e.target.style.backgroundColor = '#4CAF50';
+                e.target.classList.remove('hidden');
+                currentNumber++;
+
+                if (currentNumber > numbers.length) {
+                    gameOverText.textContent = '恭喜你赢了！';
+                    gameOverText.style.color = 'green';
+                    gameActive = false;
+                }
+            } else {
+                gameOverText.textContent = '游戏结束！顺序错误';
+                gameActive = false;
+                document.querySelectorAll('.number-box').forEach(box => {
+                    box.classList.remove('hidden');
+                });
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            gameOverText.textContent = '';
+            currentNumber = 1;
+            gameActive = true;
+            createNumberBoxes();
+        });
+
+        // 限制输入范围
+        numberInput.addEventListener('change', () => {
+            let value = parseInt(numberInput.value);
+            if (value < 1) numberInput.value = 1;
+            if (value > 9) numberInput.value = 9;
+        });
+    </script>
+</body>
+</html>
